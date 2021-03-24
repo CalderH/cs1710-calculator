@@ -1,0 +1,102 @@
+#lang forge
+
+option problem_type temporal
+option max_tracelength 10
+
+----------------------------------------
+
+sig NumFrame {
+	var value : some Int,
+    var prev : lone NumFrame // Goes from top to bottom
+}
+
+-- Not "one sig" because we want to be able to model multiple stacks
+-- if we want it to be one in the meantime we can just make it 'one' in the traces
+sig NumStack {
+	var top: lone NumFrame
+}
+
+-- stack -> var set Frames
+
+----------------------------------------
+
+abstract sig Operation {}
+
+one sig Addition{} // For example 
+
+sig OperationFrame {
+	operation : one Operation,
+    next: one OperationFrame
+    -- The last OperationFrame points to itself
+}
+
+sig PC {current: one OperationFrame}
+
+----------------------------------------
+
+fun pop1[]
+
+fun pop2[]
+
+fun push[]
+
+pred incrementPC { //included in traces itself for every state
+	PC.current' = PC.current.next
+}
+
+pred add {
+	-- guard
+	PC.current.operation = Addition
+    some top.prev.prev
+    
+    -- current stack
+    stack' = pop2[currentstack] + add[top[cs] + secondtop[cs]]
+}
+
+pred init {
+	no next.(PC.current)
+}
+
+
+
+
+pred andersons-add {
+	PC.current.operation = Addition --at correct operation
+    some top.prev --you have enough frames (a top and a previous of the top is enough)
+    
+    -- current stack
+    all n : NumStack | {
+    	one f : n.top.*prev | {
+        in 
+        set differnce
+        
+          	prev' = pop2[prev] + top.prev -> (add[top.value, top.prev.value] -> none)
+    		top' = (add[top.value, top.prev.value] -> none)
+        }
+  	}
+}
+
+
+pred oshAdd {
+	-- guard
+	PC.current.operation = Addition
+    -- guard for adding top 2
+    some NumStack.top.prev
+    
+    -- current stack
+    -- prev -- NumFrame->NumFrame
+    NumFrame.prev' = addFunc[NumStack.top.value, NumStack.top.prev.value]
+    
+    -- stack' = pop2[currentstack] + add[top[cs] + secondtop[cs]]
+}
+
+pred calderAdd {
+	-- guard
+	PC.current.operation = Addition
+    some top.prev.prev
+
+    all s : NumStack {
+        add[s.top.value, s.top.prev.value] = s.top.value'
+        prev & (s.top.*prev -> s.top.*prev) - s.top->s.top.prev - s.top.prev->s.top.prev.prev = (prev & (s.top.*prev -> s.top.*prev) - s.top->s.top.prev)'
+    }
+}
