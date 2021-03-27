@@ -1,0 +1,53 @@
+#lang forge
+
+option problem_type temporal
+option max_tracelength 10
+
+-----------------WORLD 2 (pretty nice, but might be slow...)-----------------------
+one sig DoneFlag {}
+
+sig Thread {
+    var stack: set (Int -> Int) //index -> value, bottom of the stack is index 0
+    var pc: one OperationFrame //PC is program counter
+    var done: lone DoneFlag
+} 
+
+
+abstract sig Operation {}
+one sig Addition{} extends Operation
+one sig END{} extends Operation //Points to itseelf as an end...
+
+//Nothing is var here; nothing changes
+sig OperationFrame {
+	operation : one Operation,
+    next: one OperationFrame
+    -- The last OperationFrame points to itself
+}
+
+//The init will be something like 
+// - Every thread is at the top of the OperationFrame chain
+
+//Transitions be like
+// - once a tread has done is never changes
+// - a thread only gets done once its ps id on the special END thread
+// - only do a noop when everyone is at the END
+// - otherwise, for everyone else who is not done:
+//      - if their pc is on Addition, then thread' should be add[thread]
+//      - etc
+
+----------------------------------------
+
+//Assumed functions:
+// -  getTopFrameValue[thread]
+// -  getTopFrameIndex[thread]
+// -  pop2 (just removes the hightest indexed frame and the one with its index - 1)
+
+
+//GOing to be using imprecise syntax for Int and int aruthmetic since its annoying
+pred add[t : Thread] {
+	t.pc = Addition --at correct operation
+    t.stack.getTopFrameIndex[t] > 1 --you have enough frames (ie more than 1)
+    t.pc' = t.pc.next --point to the next place in the program counter
+    
+    t.stack' = pop2[t.stack] + (getTopFrameIndex[t] - 1 -> getTopFrameValue[t] + t.stack.(getTopFrameValue[t] - 1))
+}
