@@ -12,7 +12,10 @@ sig Thread {
 } 
 
 abstract sig Operation {}
-one sig Addition extends Operation {}
+one sig Addition, Multiplication, Subtraction, Division, Remainder extends Operation {}
+sig Push extends Operation {
+    num: one Int
+}
 one sig END extends Operation {} //Points to itseelf as an end...
 
 //Nothing is var here; nothing changes
@@ -21,19 +24,21 @@ one sig OperationList {
 }
 
 //TODO: what about bit overflow
-pred indexesInOrder[thread : Thread]{
-    one thread.tstack.(sing[0]) // Must have 0
-    one i : thread.tstack.Int | {
-        no thread.tstack.(sing[add[sum[i], 1]])
+pred stackIndicesInOrder[thread : Thread]{
+    one (sing[0]).(thread.tstack) // Must have 0
+    one i : (thread.tstack).Int | {
+        no (i.succ).(thread.tstack)
     }
+    no sing[-1].(thread.tstack)
     ~(thread.tstack).(thread.tstack) in iden //Only value for every index
 }
 
-pred indexesInOrderOperations{
-    one OperationList.list.(sing[0]) // Must have 0
-    one i : OperationList.list.Int | {
-        no OperationList.list.(sing[add[sum[i], 1]])
+pred operationIndicesInOrder{
+    one (sing[0]).(OperationList.list) // Must have 0
+    one i : (OperationList.list).Operation | {
+        no (i.succ).(OperationList.list)
     }
+    no sing[-1].(OperationList.list)
     ~(OperationList.list).(OperationList.list) in iden //Only value for every index
 }
 
@@ -42,10 +47,11 @@ pred init {
     Thread.pc = sing[0]
     some list
     some list.END
+    (OperationList.list)[sing[0]] != END
     no done
     // all t : Thread | some t.tstack
-    all t : Thread | indexesInOrder[t]
-    indexesInOrderOperations
+    all t : Thread | stackIndicesInOrder[t]
+    operationIndicesInOrder
 }
 
 
@@ -65,13 +71,54 @@ fun pop2[thread : Thread] : set Int -> Int {
     thread.tstack - (getTopFrameIndex[thread] -> Int) - (succ.(getTopFrameIndex[thread]) -> Int)
 }
 
-//GOing to be using imprecise syntax for Int and int aruthmetic since its annoying
 pred addStuff[t : Thread] {
     (t.pc).(OperationList.list) = Addition
     sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
     t.pc' = (t.pc).succ --point to the next place in the program counter
     
-    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[add[sum[getTopFrameValue[t]], sum[t.tstack[succ.(getTopFrameIndex[t])]]]])
+    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[add[sum[t.tstack[succ.(getTopFrameIndex[t])]], sum[getTopFrameValue[t]]]])
+}
+
+pred subtractStuff[t : Thread] {
+    (t.pc).(OperationList.list) = Subtraction
+    sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
+    t.pc' = (t.pc).succ --point to the next place in the program counter
+    
+    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[subtract[sum[t.tstack[succ.(getTopFrameIndex[t])]], sum[getTopFrameValue[t]]]])
+}
+
+pred multiplyStuff[t : Thread] {
+    (t.pc).(OperationList.list) = Multiplication
+    sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
+    t.pc' = (t.pc).succ --point to the next place in the program counter
+    
+    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[multiply[sum[t.tstack[succ.(getTopFrameIndex[t])]], sum[getTopFrameValue[t]]]])
+}
+
+pred divideStuff[t : Thread] {
+    (t.pc).(OperationList.list) = Division
+    getTopFrameValue[t] != sing[0]
+    sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
+    t.pc' = (t.pc).succ --point to the next place in the program counter
+    
+    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[divide[sum[t.tstack[succ.(getTopFrameIndex[t])]], sum[getTopFrameValue[t]]]])
+}
+
+pred remainderStuff[t : Thread] {
+    (t.pc).(OperationList.list) = Remainder
+    getTopFrameValue[t] != sing[0]
+    sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
+    t.pc' = (t.pc).succ --point to the next place in the program counter
+    
+    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[remainder[sum[t.tstack[succ.(getTopFrameIndex[t])]], sum[getTopFrameValue[t]]]])
+}
+
+pred pushStuff[t : Thread, n : Int] {
+    (t.pc).(OperationList.list) in Push
+    // (t.pc).(OperationList.list).num = n
+    t.pc' = (t.pc).succ
+
+    // t.tstack' = t.tstack + (getTopFrameIndex[t].succ)->n
 }
 
 
@@ -85,6 +132,21 @@ pred end[t : Thread] {
 
 pred transitionStates {
     always (all t : Thread | {
-        addStuff[t] or end[t]
+        addStuff[t]
+        or subtractStuff[t]
+        or multiplyStuff[t]
+        or divideStuff[t]
+        or remainderStuff[t]
+        or (some n : Int | pushStuff[t, n])
+        or end[t]
     })
 }
+
+
+pred testing {
+    init
+    transitionStates
+    eventually (some t: Thread | pushStuff[t, sing[3]])
+}
+
+run {testing} for 1 Thread, exactly 2 Push
