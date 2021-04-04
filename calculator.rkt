@@ -115,10 +115,10 @@ pred remainderStuff[t : Thread] {
 
 pred pushStuff[t : Thread, n : Int] {
     (t.pc).(OperationList.list) in Push
-    // (t.pc).(OperationList.list).num = n
+    (t.pc).(OperationList.list).num = n
     t.pc' = (t.pc).succ
 
-    // t.tstack' = t.tstack + (getTopFrameIndex[t].succ)->n
+    t.tstack' = t.tstack + (getTopFrameIndex[t].succ)->n
 }
 
 
@@ -146,7 +146,7 @@ pred transitionStates {
 pred testing {
     init
     transitionStates
-    eventually (some t: Thread | pushStuff[t, sing[3]])
+    eventually (some t: Thread | some n: Int | pushStuff[t, sing[3]])
 }
 
 run {testing} for 1 Thread, exactly 2 Push
