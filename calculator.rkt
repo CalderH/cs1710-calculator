@@ -145,7 +145,7 @@ pred transitionStates {
 pred testing {
     init
     transitionStates
-    eventually (some t: Thread | some n: Int | pushStuff[t, sing[3]])
+    eventually (some t: Thread | pushStuff[t, sing[3]])
 }
 
 run {testing} for 1 Thread, 2 Push
