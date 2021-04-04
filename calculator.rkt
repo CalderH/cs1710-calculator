@@ -6,8 +6,8 @@ option max_tracelength 10
 one sig DoneFlag {}
 
 sig Thread {
-    var tstack: set Int -> Int, //index -> value, bottom of the stack is index 0
-    var pc: one Int, //PC is program counter
+    var tstack: set Int -> Int, // index -> value, bottom of the stack is index 0
+    var pc: one Int, // PC is program counter
     var done: lone DoneFlag
 } 
 
@@ -16,30 +16,30 @@ one sig Addition, Multiplication, Subtraction, Division, Remainder extends Opera
 sig Push extends Operation {
     num: one Int
 }
-one sig END extends Operation {} //Points to itseelf as an end...
+one sig END extends Operation {}
 
-//Nothing is var here; nothing changes
+// Nothing is var here; nothing changes
 one sig OperationList {
-	list : set Int -> Operation  //index -> Operation, but the top of the list is 0
+	list : set Int -> Operation  // index -> Operation, first operation is index 0
 }
 
-//TODO: what about bit overflow
+// TODO: what about bit overflow
 pred stackIndicesInOrder[thread : Thread]{
     one (sing[0]).(thread.tstack) // Must have 0
-    one i : (thread.tstack).Int | {
+    one i : (thread.tstack).Int | { // Everything but the top has a successor
         no (i.succ).(thread.tstack)
     }
-    no sing[-1].(thread.tstack)
-    ~(thread.tstack).(thread.tstack) in iden //Only value for every index
+    no sing[-1].(thread.tstack) // No negatives
+    ~(thread.tstack).(thread.tstack) in iden // One value for every index
 }
 
 pred operationIndicesInOrder{
-    one (sing[0]).(OperationList.list) // Must have 0
+    one (sing[0]).(OperationList.list)
     one i : (OperationList.list).Operation | {
         no (i.succ).(OperationList.list)
     }
     no sing[-1].(OperationList.list)
-    ~(OperationList.list).(OperationList.list) in iden //Only value for every index
+    ~(OperationList.list).(OperationList.list) in iden
 }
 
 
@@ -121,7 +121,6 @@ pred pushStuff[t : Thread, n : Int] {
     t.tstack' = t.tstack + (getTopFrameIndex[t].succ)->n
 }
 
-
 pred end[t : Thread] {
     (t.pc).(OperationList.list) = END
     some t.done' 
@@ -149,4 +148,4 @@ pred testing {
     eventually (some t: Thread | some n: Int | pushStuff[t, sing[3]])
 }
 
-run {testing} for 1 Thread, exactly 2 Push
+run {testing} for 1 Thread, 2 Push
