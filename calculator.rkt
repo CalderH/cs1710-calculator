@@ -148,4 +148,4 @@ pred testing {
     eventually (some t: Thread | pushStuff[t, sing[3]])
 }
 
-run {testing} for 1 Thread, 2 Push
+run {testing} for 1 Thread, 8 Operation
