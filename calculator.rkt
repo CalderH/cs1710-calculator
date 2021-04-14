@@ -12,7 +12,7 @@ sig Thread {
 } 
 
 abstract sig Operation {}
-one sig Addition, Multiplication, Subtraction, Division, Remainder, Bring extends Operation {}
+one sig Addition, Multiplication, Subtraction, Division, Remainder, Bring, Send extends Operation {}
 sig Push extends Operation {
     num: one Int
 }
@@ -139,13 +139,37 @@ pred bringStuff[t: Thread] {
         )
         -- Elements after the one that was brought to the front
         (sum[i] > subtract[#t.tstack, sum[getTopFrameValue[t]], 3] && sum[i] <= subtract[#t.tstack, 3]) => (
-            (t.tstack')[i] = (t.tstack)[sing[add[sum[i], 1]]]
+            (t.tstack')[i] = (t.tstack)[i.succ]
         )
         -- The new front element
         (sum[i] = subtract[#t.tstack, 2]) => (
             (t.tstack')[i] = (t.tstack)[sing[subtract[#t.tstack, sum[getTopFrameValue[t]], 2]]]
         )
         -- Nothing after that
+        (sum[i] > subtract[#t.tstack, 2]) => (
+            no (t.tstack')[i]
+        )
+    }
+}
+
+pred sendStuff[t: Thread] {
+    (t.pc).(OperationList.list) in Send
+    sum[getTopFrameValue[t]] >= 0
+    sum[getTopFrameValue[t]] <= subtract[#t.tstack, 2]
+    t.pc' = (t.pc).succ
+
+    all i : Int {
+        -- Stack elements before the sent element
+        (sum[i] <= subtract[#t.tstack, sum[getTopFrameValue[t]], 3]) => (
+            (t.tstack')[i] = (t.tstack)[i]
+        )
+        (sum[i] = subtract[#t.tstack, sum[getTopFrameValue[t]], 2]) => (
+            (t.tstack')[i] = getSecondToTopFrameValue[t]
+        )
+        -- Elements after the one that was brought to the front
+        (sum[i] > subtract[#t.tstack, sum[getTopFrameValue[t]], 2] && sum[i] <= subtract[#t.tstack, 2]) => (
+            (t.tstack')[i] = (t.tstack)[succ.i]
+        )
         (sum[i] > subtract[#t.tstack, 2]) => (
             no (t.tstack')[i]
         )
@@ -167,7 +191,8 @@ pred transitionStates {
         // or multiplyStuff[t]
         // or divideStuff[t]
         // or remainderStuff[t]
-        bringStuff[t]
+        // or bringStuff[t]
+        sendStuff[t]
         // or (some n : Int | pushStuff[t, n])
         or end[t]
     })
