@@ -48,6 +48,7 @@ pred init {
     some list
     some list.END
     (OperationList.list)[sing[0]] != END
+    #list > 0 // no overflow
     no done
     // all t : Thread | some t.tstack
     all t : Thread | stackIndicesInOrder[t]
@@ -77,7 +78,7 @@ fun pop2[thread : Thread] : set Int -> Int {
 
 pred addStuff[t : Thread] {
     (t.pc).(OperationList.list) = Addition
-    sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
+    sum[getTopFrameIndex[t]] > 0 --you have enough frames (ie more than 1)
     t.pc' = (t.pc).succ --point to the next place in the program counter
     
     t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[add[sum[getSecondToTopFrameValue[t]], sum[getTopFrameValue[t]]]])
@@ -85,7 +86,7 @@ pred addStuff[t : Thread] {
 
 pred subtractStuff[t : Thread] {
     (t.pc).(OperationList.list) = Subtraction
-    sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
+    sum[getTopFrameIndex[t]] > 0 --you have enough frames (ie more than 1)
     t.pc' = (t.pc).succ --point to the next place in the program counter
     
     t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[subtract[sum[getSecondToTopFrameValue[t]], sum[getTopFrameValue[t]]]])
@@ -93,7 +94,7 @@ pred subtractStuff[t : Thread] {
 
 pred multiplyStuff[t : Thread] {
     (t.pc).(OperationList.list) = Multiplication
-    sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
+    sum[getTopFrameIndex[t]] > 0 --you have enough frames (ie more than 1)
     t.pc' = (t.pc).succ --point to the next place in the program counter
     
     t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[multiply[sum[getSecondToTopFrameValue[t]], sum[getTopFrameValue[t]]]])
@@ -102,7 +103,7 @@ pred multiplyStuff[t : Thread] {
 pred divideStuff[t : Thread] {
     (t.pc).(OperationList.list) = Division
     getTopFrameValue[t] != sing[0]
-    sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
+    sum[getTopFrameIndex[t]] > 0 --you have enough frames (ie more than 1)
     t.pc' = (t.pc).succ --point to the next place in the program counter
     
     t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[divide[sum[getSecondToTopFrameValue[t]], sum[getTopFrameValue[t]]]])
@@ -111,7 +112,7 @@ pred divideStuff[t : Thread] {
 pred remainderStuff[t : Thread] {
     (t.pc).(OperationList.list) = Remainder
     getTopFrameValue[t] != sing[0]
-    sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
+    sum[getTopFrameIndex[t]] > 0 --you have enough frames (ie more than 1)
     t.pc' = (t.pc).succ --point to the next place in the program counter
     
     t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[remainder[sum[getSecondToTopFrameValue[t]], sum[getTopFrameValue[t]]]])
@@ -145,11 +146,59 @@ pred transitionStates {
     })
 }
 
+pred maxOperations[n: Int] {
+    #list <= n
+}
+
 
 pred testing {
     init
     transitionStates
-    eventually (some t: Thread | addStuff[t])
+    maxOperations[5]
+
+    some t : Thread | {
+        getTopFrameValue[t] = sing[0]
+        getTopFrameIndex[t] = sing[0]
+
+        eventually {
+            some t.done
+            getTopFrameValue[t] = sing[1]
+            getTopFrameIndex[t] = sing[0]
+        }
+    }
+
+    some t : Thread | {
+        getTopFrameValue[t] = sing[1]
+        getTopFrameIndex[t] = sing[0]
+
+        eventually {
+            some t.done
+            getTopFrameValue[t] = sing[3]
+            getTopFrameIndex[t] = sing[0]
+        }
+    }
+
+    some t : Thread | {
+        getTopFrameValue[t] = sing[3]
+        getTopFrameIndex[t] = sing[0]
+
+        eventually {
+            some t.done
+            getTopFrameValue[t] = sing[7]
+            getTopFrameIndex[t] = sing[0]
+        }
+    }
+
+    some t : Thread | {
+        getTopFrameValue[t] = sing[-2]
+        getTopFrameIndex[t] = sing[0]
+
+        eventually {
+            some t.done
+            getTopFrameValue[t] = sing[-3]
+            getTopFrameIndex[t] = sing[0]
+        }
+    }
 }
 
-run {testing} for 1 Thread, 8 Operation
+run {testing} for exactly 4 Thread, 10 Operation
