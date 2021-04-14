@@ -12,7 +12,7 @@ sig Thread {
 } 
 
 abstract sig Operation {}
-one sig Addition, Multiplication, Subtraction, Division, Remainder, Bring, Send extends Operation {}
+one sig Addition, Multiplication, Subtraction, Division, Remainder, Bring, Send, Copy, Swap extends Operation {}
 sig Push extends Operation {
     num: one Int
 }
@@ -72,6 +72,10 @@ fun getSecondToTopFrameValue[thread : Thread] : one Int {
 
 //TODO: How can we make a popn?
 
+fun pop1[thread : Thread] : set Int -> Int {
+    thread.tstack - (getTopFrameIndex[thread] -> Int)
+}
+
 fun pop2[thread : Thread] : set Int -> Int {
     thread.tstack - (getTopFrameIndex[thread] -> Int) - (succ.(getTopFrameIndex[thread]) -> Int)
 }
@@ -127,7 +131,7 @@ pred pushStuff[t : Thread, n : Int] {
 }
 
 pred bringStuff[t: Thread] {
-    (t.pc).(OperationList.list) in Bring
+    (t.pc).(OperationList.list) = Bring
     sum[getTopFrameValue[t]] >= 0
     sum[getTopFrameValue[t]] <= subtract[#t.tstack, 2]
     t.pc' = (t.pc).succ
@@ -153,7 +157,7 @@ pred bringStuff[t: Thread] {
 }
 
 pred sendStuff[t: Thread] {
-    (t.pc).(OperationList.list) in Send
+    (t.pc).(OperationList.list) = Send
     sum[getTopFrameValue[t]] >= 0
     sum[getTopFrameValue[t]] <= subtract[#t.tstack, 2]
     t.pc' = (t.pc).succ
@@ -163,17 +167,36 @@ pred sendStuff[t: Thread] {
         (sum[i] <= subtract[#t.tstack, sum[getTopFrameValue[t]], 3]) => (
             (t.tstack')[i] = (t.tstack)[i]
         )
+        -- The sent element
         (sum[i] = subtract[#t.tstack, sum[getTopFrameValue[t]], 2]) => (
             (t.tstack')[i] = getSecondToTopFrameValue[t]
         )
-        -- Elements after the one that was brought to the front
+        -- Elements after the sent element
         (sum[i] > subtract[#t.tstack, sum[getTopFrameValue[t]], 2] && sum[i] <= subtract[#t.tstack, 2]) => (
             (t.tstack')[i] = (t.tstack)[succ.i]
         )
+        -- Nothing after that
         (sum[i] > subtract[#t.tstack, 2]) => (
             no (t.tstack')[i]
         )
     }
+}
+
+pred copyStuff[t: Thread] {
+    (t.pc).(OperationList.list) = Copy
+    sum[getTopFrameValue[t]] >= 0
+    sum[getTopFrameValue[t]] <= subtract[#t.tstack, 2]
+    t.pc' = (t.pc).succ
+
+    t.tstack' = pop1[t] + getTopFrameIndex[t]->((t.tstack)[sing[subtract[#t.tstack, sum[getTopFrameValue[t]], 2]]])
+}
+
+pred swapStuff[t: Thread] {
+    (t.pc).(OperationList.list) = Swap
+    sum[getTopFrameIndex[t]] > 0
+    t.pc' = (t.pc).succ
+
+    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> getTopFrameValue[t]) + (getTopFrameIndex[t] -> getSecondToTopFrameValue[t])
 }
 
 pred end[t : Thread] {
@@ -192,7 +215,9 @@ pred transitionStates {
         // or divideStuff[t]
         // or remainderStuff[t]
         // or bringStuff[t]
-        sendStuff[t]
+        // or sendStuff[t]
+        // or copyStuff[t]
+        swapStuff[t]
         // or (some n : Int | pushStuff[t, n])
         or end[t]
     })
@@ -207,7 +232,7 @@ pred testing {
     transitionStates
     maxOperations[2]
     some t : Thread | {
-        sum[getTopFrameValue[t]] > 1
+        // sum[getTopFrameValue[t]] > 1
         sum[getTopFrameIndex[t]] > 3
     }
 
