@@ -12,7 +12,7 @@ sig Thread {
 } 
 
 abstract sig Operation {}
-one sig Addition, Multiplication, Subtraction, Division, Remainder extends Operation {}
+one sig Addition, Multiplication, Subtraction, Division, Remainder, Bring extends Operation {}
 sig Push extends Operation {
     num: one Int
 }
@@ -126,6 +126,32 @@ pred pushStuff[t : Thread, n : Int] {
     t.tstack' = t.tstack + (getTopFrameIndex[t].succ)->n
 }
 
+pred bringStuff[t: Thread] {
+    (t.pc).(OperationList.list) in Bring
+    sum[getTopFrameValue[t]] >= 0
+    sum[getTopFrameValue[t]] <= subtract[#t.tstack, 2]
+    t.pc' = (t.pc).succ
+
+    all i : Int {
+        -- Stack elements before the one that was brought to the front
+        (sum[i] <= subtract[#t.tstack, sum[getTopFrameValue[t]], 3]) => (
+            (t.tstack')[i] = (t.tstack)[i]
+        )
+        -- Elements after the one that was brought to the front
+        (sum[i] > subtract[#t.tstack, sum[getTopFrameValue[t]], 3] && sum[i] <= subtract[#t.tstack, 3]) => (
+            (t.tstack')[i] = (t.tstack)[sing[add[sum[i], 1]]]
+        )
+        -- The new front element
+        (sum[i] = subtract[#t.tstack, 2]) => (
+            (t.tstack')[i] = (t.tstack)[sing[subtract[#t.tstack, sum[getTopFrameValue[t]], 2]]]
+        )
+        -- Nothing after that
+        (sum[i] > subtract[#t.tstack, 2]) => (
+            no (t.tstack')[i]
+        )
+    }
+}
+
 pred end[t : Thread] {
     (t.pc).(OperationList.list) = END
     some t.done' 
@@ -136,12 +162,13 @@ pred end[t : Thread] {
 
 pred transitionStates {
     always (all t : Thread | {
-        addStuff[t]
-        or subtractStuff[t]
-        or multiplyStuff[t]
-        or divideStuff[t]
-        or remainderStuff[t]
-        or (some n : Int | pushStuff[t, n])
+        // addStuff[t]
+        // or subtractStuff[t]
+        // or multiplyStuff[t]
+        // or divideStuff[t]
+        // or remainderStuff[t]
+        bringStuff[t]
+        // or (some n : Int | pushStuff[t, n])
         or end[t]
     })
 }
@@ -150,55 +177,69 @@ pred maxOperations[n: Int] {
     #list <= n
 }
 
-
 pred testing {
     init
     transitionStates
-    maxOperations[5]
-
+    maxOperations[2]
     some t : Thread | {
-        getTopFrameValue[t] = sing[0]
-        getTopFrameIndex[t] = sing[0]
-
-        eventually {
-            some t.done
-            getTopFrameValue[t] = sing[1]
-            getTopFrameIndex[t] = sing[0]
-        }
+        sum[getTopFrameValue[t]] > 1
+        sum[getTopFrameIndex[t]] > 3
     }
 
-    some t : Thread | {
-        getTopFrameValue[t] = sing[1]
-        getTopFrameIndex[t] = sing[0]
+    // some t : Thread | {
+    //     getTopFrameValue[t] = sing[0]
+    //     getTopFrameIndex[t] = sing[0]
 
-        eventually {
-            some t.done
-            getTopFrameValue[t] = sing[3]
-            getTopFrameIndex[t] = sing[0]
-        }
-    }
+    //     eventually {
+    //         some t.done
+    //         getTopFrameValue[t] = sing[1]
+    //         getTopFrameIndex[t] = sing[0]
+    //     }
+    // }
 
-    some t : Thread | {
-        getTopFrameValue[t] = sing[3]
-        getTopFrameIndex[t] = sing[0]
+    // some t : Thread | {
+    //     getTopFrameValue[t] = sing[0]
+    //     getTopFrameIndex[t] = sing[0]
 
-        eventually {
-            some t.done
-            getTopFrameValue[t] = sing[7]
-            getTopFrameIndex[t] = sing[0]
-        }
-    }
+    //     eventually {
+    //         some t.done
+    //         getTopFrameValue[t] = sing[1]
+    //         getTopFrameIndex[t] = sing[0]
+    //     }
+    // }
 
-    some t : Thread | {
-        getTopFrameValue[t] = sing[-2]
-        getTopFrameIndex[t] = sing[0]
+    // some t : Thread | {
+    //     getTopFrameValue[t] = sing[1]
+    //     getTopFrameIndex[t] = sing[0]
 
-        eventually {
-            some t.done
-            getTopFrameValue[t] = sing[-3]
-            getTopFrameIndex[t] = sing[0]
-        }
-    }
+    //     eventually {
+    //         some t.done
+    //         getTopFrameValue[t] = sing[3]
+    //         getTopFrameIndex[t] = sing[0]
+    //     }
+    // }
+
+    // some t : Thread | {
+    //     getTopFrameValue[t] = sing[3]
+    //     getTopFrameIndex[t] = sing[0]
+
+    //     eventually {
+    //         some t.done
+    //         getTopFrameValue[t] = sing[7]
+    //         getTopFrameIndex[t] = sing[0]
+    //     }
+    // }
+
+    // some t : Thread | {
+    //     getTopFrameValue[t] = sing[-2]
+    //     getTopFrameIndex[t] = sing[0]
+
+    //     eventually {
+    //         some t.done
+    //         getTopFrameValue[t] = sing[-3]
+    //         getTopFrameIndex[t] = sing[0]
+    //     }
+    // }
 }
 
-run {testing} for exactly 4 Thread, 10 Operation
+run {testing} for exactly 1 Thread, 10 Operation
