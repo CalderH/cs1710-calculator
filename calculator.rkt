@@ -65,6 +65,10 @@ fun getTopFrameValue[thread : Thread] : one Int {
     thread.tstack[getTopFrameIndex[thread]]
 }
 
+fun getSecondToTopFrameValue[thread : Thread] : one Int {
+    thread.tstack[succ.(getTopFrameIndex[thread])]
+}
+
 //TODO: How can we make a popn?
 
 fun pop2[thread : Thread] : set Int -> Int {
@@ -76,7 +80,7 @@ pred addStuff[t : Thread] {
     sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
     t.pc' = (t.pc).succ --point to the next place in the program counter
     
-    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[add[sum[t.tstack[succ.(getTopFrameIndex[t])]], sum[getTopFrameValue[t]]]])
+    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[add[sum[getSecondToTopFrameValue[t]], sum[getTopFrameValue[t]]]])
 }
 
 pred subtractStuff[t : Thread] {
@@ -84,7 +88,7 @@ pred subtractStuff[t : Thread] {
     sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
     t.pc' = (t.pc).succ --point to the next place in the program counter
     
-    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[subtract[sum[t.tstack[succ.(getTopFrameIndex[t])]], sum[getTopFrameValue[t]]]])
+    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[subtract[sum[getSecondToTopFrameValue[t]], sum[getTopFrameValue[t]]]])
 }
 
 pred multiplyStuff[t : Thread] {
@@ -92,7 +96,7 @@ pred multiplyStuff[t : Thread] {
     sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
     t.pc' = (t.pc).succ --point to the next place in the program counter
     
-    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[multiply[sum[t.tstack[succ.(getTopFrameIndex[t])]], sum[getTopFrameValue[t]]]])
+    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[multiply[sum[getSecondToTopFrameValue[t]], sum[getTopFrameValue[t]]]])
 }
 
 pred divideStuff[t : Thread] {
@@ -101,7 +105,7 @@ pred divideStuff[t : Thread] {
     sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
     t.pc' = (t.pc).succ --point to the next place in the program counter
     
-    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[divide[sum[t.tstack[succ.(getTopFrameIndex[t])]], sum[getTopFrameValue[t]]]])
+    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[divide[sum[getSecondToTopFrameValue[t]], sum[getTopFrameValue[t]]]])
 }
 
 pred remainderStuff[t : Thread] {
@@ -110,7 +114,7 @@ pred remainderStuff[t : Thread] {
     sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 1)
     t.pc' = (t.pc).succ --point to the next place in the program counter
     
-    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[remainder[sum[t.tstack[succ.(getTopFrameIndex[t])]], sum[getTopFrameValue[t]]]])
+    t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> sing[remainder[sum[getSecondToTopFrameValue[t]], sum[getTopFrameValue[t]]]])
 }
 
 pred pushStuff[t : Thread, n : Int] {
@@ -145,7 +149,7 @@ pred transitionStates {
 pred testing {
     init
     transitionStates
-    eventually (some t: Thread | pushStuff[t, sing[3]])
+    eventually (some t: Thread | addStuff[t])
 }
 
 run {testing} for 1 Thread, 8 Operation
