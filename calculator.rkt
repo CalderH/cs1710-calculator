@@ -233,4 +233,4 @@ pred testing {
     maxOperations[2]
 }
 
-run {testing} for exactly 1 Thread, 10 Operation
+run {testing} for exactly 2 Thread, 10 Operation
