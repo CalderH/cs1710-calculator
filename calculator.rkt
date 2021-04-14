@@ -12,7 +12,7 @@ sig Thread {
 } 
 
 abstract sig Operation {}
-one sig Addition, Multiplication, Subtraction, Division, Remainder, Bring, Send, Copy, Swap extends Operation {}
+one sig Addition, Multiplication, Subtraction, Division, Remainder, Bring, Send, Copy, Remove, Swap, Drop extends Operation {}
 sig Push extends Operation {
     num: one Int
 }
@@ -191,12 +191,42 @@ pred copyStuff[t: Thread] {
     t.tstack' = pop1[t] + getTopFrameIndex[t]->((t.tstack)[sing[subtract[#t.tstack, sum[getTopFrameValue[t]], 2]]])
 }
 
+pred removeStuff[t: Thread] {
+    (t.pc).(OperationList.list) = Remove
+    sum[getTopFrameValue[t]] >= 0
+    sum[getTopFrameValue[t]] <= subtract[#t.tstack, 2]
+    t.pc' = (t.pc).succ
+
+    all i : Int {
+        -- Stack elements before the one that was removed
+        (sum[i] <= subtract[#t.tstack, sum[getTopFrameValue[t]], 3]) => (
+            (t.tstack')[i] = (t.tstack)[i]
+        )
+        -- Elements after the one that was removed
+        (sum[i] > subtract[#t.tstack, sum[getTopFrameValue[t]], 3] && sum[i] <= subtract[#t.tstack, 3]) => (
+            (t.tstack')[i] = (t.tstack)[i.succ]
+        )
+        -- Nothing after that
+        (sum[i] > subtract[#t.tstack, 3]) => (
+            no (t.tstack')[i]
+        )
+    }
+}
+
 pred swapStuff[t: Thread] {
     (t.pc).(OperationList.list) = Swap
     sum[getTopFrameIndex[t]] > 0
     t.pc' = (t.pc).succ
 
     t.tstack' = pop2[t] + (succ.(getTopFrameIndex[t]) -> getTopFrameValue[t]) + (getTopFrameIndex[t] -> getSecondToTopFrameValue[t])
+}
+
+pred dropStuff[t: Thread] {
+    (t.pc).(OperationList.list) = Drop
+    some t.tstack
+    t.pc' = (t.pc).succ
+
+    t.tstack' = pop1[t]
 }
 
 pred end[t : Thread] {
@@ -217,7 +247,9 @@ pred transitionStates {
         or bringStuff[t]
         or sendStuff[t]
         or copyStuff[t]
+        or removeStuff[t]
         or swapStuff[t]
+        or dropStuff[t]
         or (some n : Int | pushStuff[t, n])
         or end[t]
     })
@@ -226,11 +258,3 @@ pred transitionStates {
 pred maxOperations[n: Int] {
     #list <= n
 }
-
-pred testing {
-    init
-    transitionStates
-    maxOperations[2]
-}
-
-run {testing} for exactly 1 Thread, 10 Operation
