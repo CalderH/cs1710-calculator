@@ -41,4 +41,8 @@ stacks = {(0, 0): (0,),
           (1, 1): (4,),
           (-2, -1): (-6,)}
 test = run_threads_start_end('sum_and_double', stacks, 4, 1)
+# sum_and_double is the name of the predicate
+# stacks is the beginning and end state of each stack
+# 4 is the maximum allowed number of operations
+# 1 is the maximum allowed number of pushes
 print(test)
