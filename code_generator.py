@@ -95,7 +95,8 @@ def run_function(pred_name, commands):
     if commands != '':
         raise Exception('could not parse')
 
-    code += f'''}}
+    code += f'''    #list = {line_number}
+}}
 
 run {{{pred_name}}} for exactly [number] Thread, {num_non_push_operations + num_pushes} Operation'''
     return code
