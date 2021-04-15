@@ -3,7 +3,8 @@ div.replaceChildren() // remove all content
 let instanceindx = 0
 for (i of instances){
   
-  //thing = i.project() for some reason this doesn't work...
+  //thing = i.project() 
+  //for some reason this doesn't work...
   
   const instancename = document.createElement('p')
   instancename.textContent = "Instance " + instanceindx
@@ -72,8 +73,18 @@ operationListHolder.appendChild(listText)
 
 opList.tuples().forEach(op => {  
   //Assumes each thread's pc is at the same point...
+  const isPushOperation = Int.join(op).toString().startsWith("Operation")
+  let operationName = ""
+  if (isPushOperation){
+    const toBePushed = Int.join(op).join(num)
+    operationName = "Push (" + toBePushed + ")"
+  }else{
+    operationName = Int.join(op).toString()
+    operationName = operationName.substring(0, operationName.length-1)
+  }
+  
+  const stringifiedOp = op.atoms()[0] + " " + operationName + " -> "
   const isSelected = parseInt(op.atoms()[0].toString()) == parseInt(Thread0.join(pc).toString())
-  const stringifiedOp = Int.join(op) + op.atoms()[0] + " -> "
   if (isSelected) listText.innerHTML += '<span style="color: #ff0000">' + stringifiedOp + '</span>'
   else listText.innerHTML += stringifiedOp
 });
