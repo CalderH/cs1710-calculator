@@ -2,17 +2,14 @@ div.replaceChildren() // remove all content
 
 let instanceindx = 0
 for (i of instances){
-  
-  //thing = i.project() 
-  //for some reason this doesn't work...
-  
+    
   const instancename = document.createElement('p')
   instancename.textContent = "Instance " + instanceindx
   instancename.style.marginTop = '18px'
   div.appendChild(instancename)
   
 //Rendering the threads (currently only rendering the first thread)...
-for (thread of Thread.tuples()){
+for (thread of i.signature("Thread").atoms()){
   
   const firstThreadParent = document.createElement('pre')
   firstThreadParent.style.width = '30%'
@@ -30,9 +27,11 @@ for (thread of Thread.tuples()){
   const stackIndexes = document.createElement('p')
   firstThreadParent.appendChild(stackIndexes)
 
-  thread.join(tstack).tuples().forEach(stackTuple => {   
-    stackElements.textContent += stackTuple.join(Int) + "  "
-    stackIndexes.textContent += Int.join(stackTuple) + "  "
+  thread.join(i.field("tstack")).tuples().forEach(stackTuple => {   
+    //Hiding indexes, seems safe to assume elements are in order so
+    //there's no need for them...
+    //stackIndexes.textContent += stackTuple.join(i.signature("Int")) + "  "
+    stackElements.textContent += i.signature("Int").join(stackTuple) + "  "
   });
 
   const threadParentHolder = document.createElement('div')
@@ -55,36 +54,25 @@ operationListHolder.style["background-color"] = 'orange'
 operationListHolder.style["grid-template-columns"] = 'auto auto auto auto'
 operationListHolder.style["flex-direction"] = 'col'
 
-//TODO: need to find a cleaner way to do this
-//This actually might not be needed anyways...
-const allOperations = Addition.tuples()
-      .concat(Copy.tuples())
-      .concat(END.tuples())
-      .concat(Multiplication.tuples())
-      .concat(Push.tuples())
-      .concat(Send.tuples())
-      .concat(Bring.tuples())
-      .concat(Swap.tuples())
-      .concat(Subtraction.tuples())
 
-let opList = OperationList.join(list)
+let opList = i.signature("OperationList").join(i.field("list"))
 const listText = document.createElement('p')
 operationListHolder.appendChild(listText)
 
 opList.tuples().forEach(op => {  
   //Assumes each thread's pc is at the same point...
-  const isPushOperation = Int.join(op).toString().startsWith("Operation")
+  const isPushOperation = i.signature("Int").join(op).toString().startsWith("Operation")
   let operationName = ""
   if (isPushOperation){
-    const toBePushed = Int.join(op).join(num)
+    const toBePushed = i.signature("Int").join(op).join(i.field("num"))
     operationName = "Push (" + toBePushed + ")"
   }else{
-    operationName = Int.join(op).toString()
+    operationName = i.signature("Int").join(op).toString()
     operationName = operationName.substring(0, operationName.length-1)
   }
   
   const stringifiedOp = op.atoms()[0] + " " + operationName + " -> "
-  const isSelected = parseInt(op.atoms()[0].toString()) == parseInt(Thread0.join(pc).toString())
+  const isSelected = parseInt(op.atoms()[0].toString()) == parseInt(i.atom("Thread0").join(i.field("pc")).toString())
   if (isSelected) listText.innerHTML += '<span style="color: #ff0000">' + stringifiedOp + '</span>'
   else listText.innerHTML += stringifiedOp
 });
