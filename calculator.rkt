@@ -276,6 +276,10 @@ pred lessEqualStuff[t : Thread] {
     (not sum[getSecondToTopFrameValue[t]] <= sum[getTopFrameValue[t]]) => (t.tstack' = t.tstack + (getTopFrameIndex[t].succ)->sing[0])
 }
 
+-- Third from top: 0 or 1 (true/false), to choose which line to go to
+-- Second from top: the line to go to if true (1)
+-- Top: the line to go to if false (0)
+-- Pops all three off when it runs
 pred ifStuff[t : Thread] {
     (t.pc).(OperationList.list) = If
     sum[getTopFrameIndex[t]] > 1 --you have enough frames (ie more than 2)
