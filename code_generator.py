@@ -38,7 +38,31 @@ def start_pred(pred_name, stacks):
 }}
 '''
 
-num_non_push_operations = 12
+#                Math operations:
+symbols = {'+': 'Addition',
+           '*': 'Multiplication',
+           '-': 'Subtraction',
+           '/': 'Division',
+           '%': 'Remainder',
+#                Stack manipulation:
+           'b': 'Bring',
+           's': 'Send',
+           'c': 'Copy',
+           'r': 'Remove',
+           'x': 'Swap',
+           'd': 'Drop',
+#                Comparison:
+           '=': 'Equal',
+           '>': 'Greater',
+           '<': 'Less',
+           ']': 'GreaterEqual',
+           '[': 'LessEqual',
+#                Control flow:
+           '?': 'If',
+           '!': 'Jump',
+           '.': 'END'}
+
+num_non_push_operations = len(symbols)
 
 def run_threads_start_end(pred_name, stacks, max_operations, max_pushes):
     thread_list = [thread_start_end(start, stacks[start]) for start in stacks]
@@ -55,21 +79,12 @@ def run_threads_start_end(pred_name, stacks, max_operations, max_pushes):
 run {pred_name} for exactly {len(stacks)} Thread, {num_non_push_operations + max_pushes} Operation
 '''
 
-def run_function(pred_name, commands):
-    symbols = {'+': 'Addition',
-               '*': 'Multiplication',
-               '-': 'Subtraction',
-               '/': 'Division',
-               '%': 'Remainder',
-               'b': 'Bring',
-               's': 'Send',
-               'c': 'Copy',
-               'r': 'Remove',
-               'x': 'Swap',
-               'd': 'Drop',
-               '.': 'END'}
+def run_function(pred_name, commands, num_threads):
+    code = f'''pred {pred_name} {{
+    init
+    transitionStates
 
-    code = f'pred {pred_name} {{\n'
+'''
     line_number = 0
     num_pushes = 0
     while commands != '':
@@ -98,7 +113,7 @@ def run_function(pred_name, commands):
     code += f'''    #list = {line_number}
 }}
 
-run {{{pred_name}}} for exactly [number] Thread, {num_non_push_operations + num_pushes} Operation'''
+run {{{pred_name}}} for exactly {num_threads} Thread, {num_non_push_operations + num_pushes} Operation'''
     return code
 
 
@@ -113,5 +128,6 @@ run {{{pred_name}}} for exactly [number] Thread, {num_non_push_operations + num_
 # (e.g. 11+ pushes 11 and adds, while 1,1+ pushes 1 and 1 and adds them)
 # to push a negative number, use ~ for the minus sign since - is for subtraction
 
-test = run_function('x_times_x_plus_1', '0c1+*.')
-print(test)
+output = start_pred('startValues', [(-5,), (-1,), (0,), (1,), (2,)])
+# output = run_function('absolute_value', '0<5,9?d~1*.d.', 1)
+print(output)
