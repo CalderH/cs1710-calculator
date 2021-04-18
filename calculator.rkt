@@ -26,18 +26,22 @@ one sig OperationList {
 
 // example of valid indices: 0, 1, 2, 3
 pred stackIndicesInOrder[thread : Thread]{
-    one (sing[0]).(thread.tstack) // Must have 0
-    one i : (thread.tstack).Int | { // Everything but the top has a successor
-        no (i.succ).(thread.tstack)
+    some thread.tstack => { // If there is anything in the stack:
+        one (sing[0]).(thread.tstack) // There must be an index 0
+        one i : (thread.tstack).Int | { // Everything but the top has a successor
+            no (i.succ).(thread.tstack)
+        }
     }
     all i : (thread.tstack).univ | {sum[i] >= 0} // No negatives
     ~(thread.tstack).(thread.tstack) in iden // One value for every index
 }
 
 pred operationIndicesInOrder{
-    one (sing[0]).(OperationList.list)
-    one i : (OperationList.list).Operation | {
-        no (i.succ).(OperationList.list)
+    some OperationList.list => {
+        one (sing[0]).(OperationList.list)
+        one i : (OperationList.list).Operation | {
+            no (i.succ).(OperationList.list)
+        }
     }
     all i : (OperationList.list).univ | {sum[i] >= 0}
     ~(OperationList.list).(OperationList.list) in iden
@@ -56,6 +60,7 @@ pred init {
 
 // Helper functions ------------------------------------------------------------------------------
 
+// Note: this function has undefined behavior for an empty stack
 fun getTopFrameIndex[thread : Thread] : one Int {
     sing[max[thread.tstack.Int]]
 }
@@ -144,7 +149,8 @@ pred pushPred[t : Thread, n : Int] {
     (t.pc).(OperationList.list).num = n // The Operation must have n as its num.
 
     t.pc' = (t.pc).succ
-    t.tstack' = t.tstack + (getTopFrameIndex[t].succ)->n
+    some t.tstack => (t.tstack' = t.tstack + (getTopFrameIndex[t].succ)->n)
+    no t.tstack => (t.tstack' = sing[0]->n)
 }
 
 // Take the i-th element out of the stack and bring it to the front of the stack.
@@ -392,7 +398,14 @@ pred transitionStates {
 // For better performance, use this to limit how many operations are allowed.
 pred maxOperations[n: Int] {
     #list <= n
+    #list >= 0 // to prevent overflow
 }
+
+// test expect {
+//     maintainsOrder: {(init and transitionStates and maxOperations[3]) => (always (all t : Thread | stackIndicesInOrder[t]))} for exactly 1 Thread, 20 Operation is theorem
+// }
+// We did not get final results from this test, but an equivalent check statement ran for 8 hours without finding a counterexample
+// (When it did find counterexamples it took a few seconds)
 
 // Examples ---------------------------------------------------------------------------------
 

@@ -1,5 +1,7 @@
 import re
 
+# Scroll down to the bottom for an explanation
+
 def indent_lines(s, num_spaces):
     return re.sub('^', ' ' * num_spaces, s, flags=re.M)
 
@@ -116,21 +118,36 @@ def run_function(pred_name, commands, num_threads):
 run {{{pred_name}}} for exactly {num_threads} Thread, {num_non_push_operations + num_pushes} Operation'''
     return code
 
+pred_name, stacks, max_operations, max_pushes
 
+# start_pred: Specify how each thread should start.
+#   Inputs:
+#   - the name of the predicate
+#   - a list of tuples representing stacks
+# run_threads_start_end: Specify how each thread should start and end, with a run statement.
+#   Inputs:
+#   - the name of the predicate
+#   - a dict of tuples->tuples representing how each stack starts and ends
+#   - the maximum number of operations allowed
+#   - the maximum number of push operations allowed
+# run_function: specify what commands should happen, with run statement.
+#   Inputs:
+#   - the name of the predicate specifying the function
+#   - the commands (see note)
+#   - the number of threads to run the command for
+#   Command syntax:
+#   - Each command other than Push is represented by one character
+#     - See the “symbols” dict for a full list
+#   - Any sequence of digits is a Push of that number
+#     - To separate two successive Pushes, use a comma
+#       - (For example, 11+ pushes 11 and adds it to the number before, while 1,1+ pushes 1 and 1 and adds them)
+#     - To push a negative number, use ~ for the minus sign since - is for subtraction
 
-# start_pred: specify how each thread should start
-# run_threads_start_end: specify how each thread should start and end, with run statement
-# run_function: specify what commands should happen, with run statement
+# output = run_threads_start_end('twentyFour', {(4, 7, 8, 8): (24,)}, 7, 2)
+# output = run_function('simpleIf', '3,4?1.', 3)
+# output = start_pred('simpleIfStartValues', [(-3,), (0,), (2,)])
+# output = run_function('absoluteValue', '0<5,9?d~1*.d.', 1)
+# output = start_pred('absoluteValueStartValues', [(-5,), (-1,), (0,), (1,), (5,)])
+output = run_threads_start_end('nPlus1TimesN', {(0,): (0,), (1,): (2,), (2,): (6,), (-3,): (6,)}, 5, 1)
 
-# syntax for run_function:
-# each command other than Push is represented by one character; see the list in the function definition
-# any sequence of digits is Pushed as a number; to separate two successive Pushes use a comma
-# (e.g. 11+ pushes 11 and adds, while 1,1+ pushes 1 and 1 and adds them)
-# to push a negative number, use ~ for the minus sign since - is for subtraction
-
-# output = start_pred('startValues', [(-3,), (0,), (2,)])
-# output = run_function('absolute_value', '0<5,9?d~1*.d.', 1)
-# output = run_threads_start_end('twenty_four', {(4, 7, 8, 8): (24,)}, 7, 2)
-# output = run_function('absolute_value', '3,4?1.', 3)
-output = run_threads_start_end('n_plus_1_times_n', {(0,): (0,), (1,): (2,), (2,): (6,), (-3,): (6,)}, 5, 1)
 print(output)
