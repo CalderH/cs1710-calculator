@@ -394,80 +394,53 @@ pred maxOperations[n: Int] {
     #list <= n
 }
 
-// pred startValues {
-//     init
-//     transitionStates
+// Examples ---------------------------------------------------------------------------------
 
-//     some t : Thread | {
-//         t.tstack[sing[0]] = sing[-5]
-//         getTopFrameIndex[t] = sing[0]
-//     }
+/*
+The 24 game. The predicate specifies that the single stack is [1 2 3 4] in the initial state
+and [24] in the final state. (Allowing for all stack manipulation and control flow operations
+causes it to come up with some weird “cheating” solutions along with the expected multiplication.)
+
+pred twentyFour {
+    init
+    transitionStates
+    maxOperations[7]
+
+    some t : Thread | {
+        t.tstack[sing[0]] = sing[1]
+        t.tstack[sing[1]] = sing[2]
+        t.tstack[sing[2]] = sing[3]
+        t.tstack[sing[3]] = sing[4]
+        getTopFrameIndex[t] = sing[3]
     
-//     some t : Thread | {
-//         t.tstack[sing[0]] = sing[-1]
-//         getTopFrameIndex[t] = sing[0]
-//     }
-    
-//     some t : Thread | {
-//         t.tstack[sing[0]] = sing[0]
-//         getTopFrameIndex[t] = sing[0]
-//     }
-    
-//     some t : Thread | {
-//         t.tstack[sing[0]] = sing[1]
-//         getTopFrameIndex[t] = sing[0]
-//     }
-    
-//     some t : Thread | {
-//         t.tstack[sing[0]] = sing[5]
-//         getTopFrameIndex[t] = sing[0]
-//     }
-// }
+        eventually {
+            some t.done
+            t.tstack[sing[0]] = sing[24]
+            getTopFrameIndex[t] = sing[0]
+        }
+    }
+}
 
-// -- 0<5,9?d~1*.d.
-// pred absoluteValue {
-//     init
-//     transitionStates
+run twentyFour for exactly 1 Thread, 21 Operation, 6 Int
+*/
 
-//     OperationList.list[sing[0]] in Push && (OperationList.list[sing[0]]).num = sing[0]
-//     OperationList.list[sing[1]] = Less
-//     OperationList.list[sing[2]] in Push && (OperationList.list[sing[2]]).num = sing[5]
-//     OperationList.list[sing[3]] in Push && (OperationList.list[sing[3]]).num = sing[9]
-//     OperationList.list[sing[4]] = If
-//     OperationList.list[sing[5]] = Drop
-//     OperationList.list[sing[6]] in Push && (OperationList.list[sing[6]]).num = sing[-1]
-//     OperationList.list[sing[7]] = Multiplication
-//     OperationList.list[sing[8]] = END
-//     OperationList.list[sing[9]] = Drop
-//     OperationList.list[sing[10]] = END
-//     #list = 11
-// }
+/*
+Assume there is one number in the stack. If it is positive, the stack will end up containing
+a single 1; if it is zero or negative, the stack will end up empty.
 
-// run {startValues absoluteValue} for exactly 5 Thread, 23 Operation, 5 Int
+pred simpleIf {
+    init
+    transitionStates
 
-// pred twenty_four {
-//     init
-//     transitionStates
-//     maxOperations[7]
+    OperationList.list[sing[0]] in Push && (OperationList.list[sing[0]]).num = sing[3]
+    OperationList.list[sing[1]] in Push && (OperationList.list[sing[1]]).num = sing[4]
+    OperationList.list[sing[2]] = If
+    OperationList.list[sing[3]] in Push && (OperationList.list[sing[3]]).num = sing[1]
+    OperationList.list[sing[4]] = END
+    #list = 5
+}
 
-//     some t : Thread | {
-//         t.tstack[sing[0]] = sing[1]
-//         t.tstack[sing[1]] = sing[2]
-//         t.tstack[sing[2]] = sing[3]
-//         t.tstack[sing[3]] = sing[4]
-//         getTopFrameIndex[t] = sing[3]
-    
-//         eventually {
-//             some t.done
-//             t.tstack[sing[0]] = sing[24]
-//             getTopFrameIndex[t] = sing[0]
-//         }
-//     }
-// }
-
-// run twenty_four for exactly 1 Thread, 21 Operation, 6 Int
-
-pred startValues {
+pred simpleIfStartValues {
     init
     transitionStates
 
@@ -487,16 +460,116 @@ pred startValues {
     }
 }
 
-pred visualizer_test {
+run {simpleIfStartValues simpleIf} for exactly 3 Thread, 22 Operation
+*/
+
+/*
+An absolute value function, tested on five stacks with different starting numbers.
+
+-- Generated from code_generator using “0<5,9?d~1*.d.”
+pred absoluteValue {
     init
     transitionStates
 
-    OperationList.list[sing[0]] in Push && (OperationList.list[sing[0]]).num = sing[3]
-    OperationList.list[sing[1]] in Push && (OperationList.list[sing[1]]).num = sing[4]
-    OperationList.list[sing[2]] = If
-    OperationList.list[sing[3]] in Push && (OperationList.list[sing[3]]).num = sing[1]
-    OperationList.list[sing[4]] = END
-    #list = 5
+    OperationList.list[sing[0]] in Push && (OperationList.list[sing[0]]).num = sing[0]
+    OperationList.list[sing[1]] = Less
+    OperationList.list[sing[2]] in Push && (OperationList.list[sing[2]]).num = sing[5]
+    OperationList.list[sing[3]] in Push && (OperationList.list[sing[3]]).num = sing[9]
+    OperationList.list[sing[4]] = If
+    OperationList.list[sing[5]] = Drop
+    OperationList.list[sing[6]] in Push && (OperationList.list[sing[6]]).num = sing[-1]
+    OperationList.list[sing[7]] = Multiplication
+    OperationList.list[sing[8]] = END
+    OperationList.list[sing[9]] = Drop
+    OperationList.list[sing[10]] = END
+    #list = 11
 }
 
-run {startValues visualizer_test} for exactly 3 Thread, 22 Operation
+pred absoluteValuestartValues {
+    init
+    transitionStates
+
+    some t : Thread | {
+        t.tstack[sing[0]] = sing[-5]
+        getTopFrameIndex[t] = sing[0]
+    }
+    
+    some t : Thread | {
+        t.tstack[sing[0]] = sing[-1]
+        getTopFrameIndex[t] = sing[0]
+    }
+    
+    some t : Thread | {
+        t.tstack[sing[0]] = sing[0]
+        getTopFrameIndex[t] = sing[0]
+    }
+    
+    some t : Thread | {
+        t.tstack[sing[0]] = sing[1]
+        getTopFrameIndex[t] = sing[0]
+    }
+    
+    some t : Thread | {
+        t.tstack[sing[0]] = sing[5]
+        getTopFrameIndex[t] = sing[0]
+    }
+}
+
+run {absoluteValuestartValues absoluteValue} for exactly 5 Thread, 23 Operation, 5 Int
+*/
+
+/*
+Given sample inputs and outputs (0->0, 1->2, 2->6, -3->6), figures out the function f(n) = (n + 1) * n.
+
+pred nPlus1TimesN {
+    init
+    transitionStates
+    maxOperations[5]
+
+    some t : Thread | {
+        t.tstack[sing[0]] = sing[0]
+        getTopFrameIndex[t] = sing[0]
+    
+        eventually {
+            some t.done
+            t.tstack[sing[0]] = sing[0]
+            getTopFrameIndex[t] = sing[0]
+        }
+    }
+    
+    some t : Thread | {
+        t.tstack[sing[0]] = sing[1]
+        getTopFrameIndex[t] = sing[0]
+    
+        eventually {
+            some t.done
+            t.tstack[sing[0]] = sing[2]
+            getTopFrameIndex[t] = sing[0]
+        }
+    }
+    
+    some t : Thread | {
+        t.tstack[sing[0]] = sing[2]
+        getTopFrameIndex[t] = sing[0]
+    
+        eventually {
+            some t.done
+            t.tstack[sing[0]] = sing[6]
+            getTopFrameIndex[t] = sing[0]
+        }
+    }
+    
+    some t : Thread | {
+        t.tstack[sing[0]] = sing[-3]
+        getTopFrameIndex[t] = sing[0]
+    
+        eventually {
+            some t.done
+            t.tstack[sing[0]] = sing[6]
+            getTopFrameIndex[t] = sing[0]
+        }
+    }
+}
+
+run nPlus1TimesN for exactly 4 Thread, 20 Operation
+*/
