@@ -128,8 +128,8 @@ run {{{pred_name}}} for exactly {num_threads} Thread, {num_non_push_operations +
 # (e.g. 11+ pushes 11 and adds, while 1,1+ pushes 1 and 1 and adds them)
 # to push a negative number, use ~ for the minus sign since - is for subtraction
 
-# output = start_pred('startValues', [(-5,), (-1,), (0,), (1,), (2,)])
+output = start_pred('startValues', [(-3,), (0,), (2,)])
 # output = run_function('absolute_value', '0<5,9?d~1*.d.', 1)
 # output = run_threads_start_end('twenty_four', {(4, 7, 8, 8): (24,)}, 7, 2)
-output = run_function('absolute_value', '3,4?1.', 3)
+# output = run_function('absolute_value', '3,4?1.', 3)
 print(output)

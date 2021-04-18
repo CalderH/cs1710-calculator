@@ -467,6 +467,26 @@ pred maxOperations[n: Int] {
 
 // run twenty_four for exactly 1 Thread, 21 Operation, 6 Int
 
+pred startValues {
+    init
+    transitionStates
+
+    some t : Thread | {
+        t.tstack[sing[0]] = sing[-3]
+        getTopFrameIndex[t] = sing[0]
+    }
+    
+    some t : Thread | {
+        t.tstack[sing[0]] = sing[0]
+        getTopFrameIndex[t] = sing[0]
+    }
+    
+    some t : Thread | {
+        t.tstack[sing[0]] = sing[2]
+        getTopFrameIndex[t] = sing[0]
+    }
+}
+
 pred visualizer_test {
     init
     transitionStates
@@ -479,4 +499,4 @@ pred visualizer_test {
     #list = 5
 }
 
-run {visualizer_test} for exactly 3 Thread, 22 Operation
+run {startValues visualizer_test} for exactly 3 Thread, 22 Operation
