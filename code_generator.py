@@ -143,7 +143,7 @@ pred_name, stacks, max_operations, max_pushes
 #       - (For example, 11+ pushes 11 and adds it to the number before, while 1,1+ pushes 1 and 1 and adds them)
 #     - To push a negative number, use ~ for the minus sign since - is for subtraction
 
-# output = run_threads_start_end('twentyFour', {(4, 7, 8, 8): (24,)}, 7, 2)
+# output = run_threads_start_end('twentyFour', {(1, 2, 3, 4): (24,)}, 7, 2)
 # output = run_function('simpleIf', '3,4?1.', 3)
 # output = start_pred('simpleIfStartValues', [(-3,), (0,), (2,)])
 # output = run_function('absoluteValue', '0<5,9?d~1*.d.', 1)

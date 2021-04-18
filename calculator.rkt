@@ -410,9 +410,9 @@ pred maxOperations[n: Int] {
 // Examples ---------------------------------------------------------------------------------
 
 /*
-The 24 game. The predicate specifies that the single stack is [1 2 3 4] in the initial state
-and [24] in the final state. (Allowing for all stack manipulation and control flow operations
-causes it to come up with some weird “cheating” solutions along with the expected multiplication.)
+// The 24 game. The predicate specifies that the single stack is [1 2 3 4] in the initial state
+// and [24] in the final state. (Allowing for all stack manipulation and control flow operations
+// causes it to come up with some weird “cheating” solutions along with the expected multiplication.)
 
 pred twentyFour {
     init
@@ -438,8 +438,8 @@ run twentyFour for exactly 1 Thread, 21 Operation, 6 Int
 */
 
 /*
-Assume there is one number in the stack. If it is positive, the stack will end up containing
-a single 1; if it is zero or negative, the stack will end up empty.
+// Assume there is one number in the stack. If it is positive, the stack will end up containing
+// a single 1; if it is zero or negative, the stack will end up empty.
 
 pred simpleIf {
     init
@@ -477,9 +477,8 @@ run {simpleIfStartValues simpleIf} for exactly 3 Thread, 22 Operation
 */
 
 /*
-An absolute value function, tested on five stacks with different starting numbers.
+// An absolute value function, tested on five stacks with different starting numbers.
 
--- Generated from code_generator using “0<5,9?d~1*.d.”
 pred absoluteValue {
     init
     transitionStates
@@ -532,12 +531,12 @@ run {absoluteValuestartValues absoluteValue} for exactly 5 Thread, 23 Operation,
 */
 
 /*
-Given sample inputs and outputs (0->0, 1->2, 2->6, -3->6), figures out the function f(n) = (n + 1) * n.
+// Given sample inputs and outputs (0->0, 1->2, 2->6, -3->6), figures out the function f(n) = (n + 1) * n.
 
 pred nPlus1TimesN {
     init
     transitionStates
-    maxOperations[5]
+    maxOperations[6]
 
     some t : Thread | {
         t.tstack[sing[0]] = sing[0]
