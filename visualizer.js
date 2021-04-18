@@ -4,11 +4,11 @@ const showIndexes = false //Turn this to true if you want...
 let instanceindx = 0
 
 for (t of Thread.tuples()) {
-
+  
   const threadTitle = document.createElement('p')
   threadTitle.innerHTML = t
   div.appendChild(threadTitle)
-
+  
   for (i of instances) {
 
     //Rendering the threads (currently only rendering the first thread)...
@@ -74,7 +74,7 @@ for (t of Thread.tuples()) {
 
       const stringifiedOp = op.atoms()[0] + " " + operationName + " -> "
       const isSelected = parseInt(op.atoms()[0].toString()) == parseInt(i.atom(t.toString()).join(i.field("pc")).toString())
-      if (isSelected) listText.innerHTML += '<span style="color: #ff0000">' + stringifiedOp + '</span>'
+      if (isSelected) listText.innerHTML += '<span style="color: #ff0000; text-decoration-line: underline;">' + stringifiedOp + '</span>'
       else listText.innerHTML += stringifiedOp
     });
 
